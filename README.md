@@ -1,70 +1,64 @@
 # Standalone Audio ML Application
 
-This project is a comprehensive standalone audio machine learning application that integrates multiple technologies to process audio input. It combines Automatic Speech Recognition (ASR), Sentiment Analysis (NLP), and Text-to-Speech (TTS) models, allowing users to interact with audio in an intelligent manner. The application offers a range of functionalities for recording, transcribing, analyzing, and responding to audio in real-time. It also supports both a command-line interface and a GUI for ease of use.
+The **Standalone Audio ML Application** is an innovative tool that integrates multiple machine learning models to create a complete audio processing pipeline. It includes **Automatic Speech Recognition (ASR)** to transcribe audio, **Natural Language Processing (NLP)** to analyze the sentiment of the transcribed text, and **Text-to-Speech (TTS)** to generate a spoken response based on the sentiment. This project showcases the potential of combining these technologies for interactive and personalized audio-based applications.
+
+This repository contains a Python-based implementation that allows users to either record audio through a microphone or process pre-recorded audio files. The application processes the audio in three stages:
+1. **Transcription**: The audio is transcribed into text using a Wav2Vec2 ASR model.
+2. **Sentiment Analysis**: The transcribed text is analyzed for sentiment using a fine-tuned DistilBERT model.
+3. **Response Generation**: Based on the sentiment analysis, a predefined response is generated.
+4. **Speech Synthesis**: The response text is then converted into speech using a Tacotron2-based TTS model.
+
+Additionally, a simple graphical user interface (GUI) built with Tkinter is included to allow users to easily interact with the application. This makes it accessible for users who prefer not to use the command line interface.
 
 ## Features
 
-- **ASR (Automatic Speech Recognition):** Convert spoken words into text using the Wav2Vec2 model by Facebook.
-- **Sentiment Analysis:** Analyze the sentiment of the transcribed text using a pre-trained DistilBERT model.
-- **TTS (Text-to-Speech):** Generate a spoken response based on the sentiment of the transcription using a Tacotron2-based model.
-- **Audio Recording & Processing:** Record audio via the microphone or process pre-recorded audio files.
-- **User Interaction:** Respond to the user's emotional tone (positive/negative) with an appropriate message.
-- **GUI Application:** Provides a user-friendly interface to record and process audio files with real-time feedback.
+- **Automatic Speech Recognition (ASR)**: 
+  - Uses the Wav2Vec2 model from Hugging Face to transcribe speech into text with high accuracy.
+  - Capable of transcribing audio files with a sample rate of 16kHz.
+  
+- **Sentiment Analysis (NLP)**:
+  - Uses the pre-trained DistilBERT model fine-tuned on the SST-2 dataset for sentiment classification (positive, negative, or neutral).
+  - Analyzes the transcribed text and categorizes it into one of the three sentiment classes.
+  
+- **Text-to-Speech (TTS)**:
+  - Converts the generated response text into natural-sounding speech using the Tacotron2 model.
+  - Generates a `.wav` file that can be played back to the user.
+  
+- **Audio Acquisition**:
+  - Records audio directly from the microphone using the `sounddevice` library.
+  - Option to record audio for a specified duration or process pre-recorded audio files.
+  
+- **Graphical User Interface (GUI)**:
+  - Built using `Tkinter`, the GUI provides an easy-to-use interface for interacting with the application.
+  - Features buttons for recording audio, processing audio files, and quitting the application.
 
-## Components
+## Files
 
-- **asr.py:** Implements the ASR system using the Wav2Vec2 model for speech-to-text conversion.
-- **nlp.py:** Uses a pre-trained sentiment analysis pipeline to classify the sentiment of the transcribed text.
-- **tts_module.py:** Uses the Tacotron2-based TTS model to synthesize audio responses.
-- **audio_acquisition.py:** Handles the recording of audio from the microphone and loading of audio files.
-- **main.py:** Integrates all components and runs the audio processing pipeline.
-- **gui_app.py:** Provides a graphical interface for users to interact with the application.
+### `asr.py`
+This script contains the `ASRModel` class which initializes and uses the Wav2Vec2 model from Hugging Face to perform Automatic Speech Recognition. It includes a method `transcribe` that takes an audio file and returns the transcribed text.
 
-## Requirements
+### `nlp.py`
+The `SentimentAnalyzer` class in this script uses a fine-tuned DistilBERT model for sentiment analysis. It includes an `analyze` method that accepts text input and returns the sentiment of the text (positive, negative, or neutral).
 
-- Python 3.x
-- transformers, librosa, torch, sounddevice, soundfile, simpleaudio, termcolor, tkinter (for GUI app)
-- To run the program, ensure you have the necessary model weights downloaded via HuggingFace or similar sources.
+### `tts_module.py`
+Contains the `TTSModel` class which interacts with the Tacotron2-based TTS model. It includes a `synthesize` method that converts a given text into speech and saves it as a `.wav` file.
+
+### `audio_acquisition.py`
+This script provides functions for recording and loading audio. The `record_audio` function records audio for a specified duration, while the `load_audio` function loads an audio file and ensures it has the correct sample rate.
+
+### `main.py`
+The main script that handles the overall audio processing pipeline. It provides functionality for both command-line and GUI usage:
+- If using the command line, it allows the user to record or select an audio file, process it through the ASR, NLP, and TTS stages, and generate a response.
+- The script also handles cleanup of temporary files after processing.
+
+### `gui_app.py`
+A simple Tkinter-based GUI for interacting with the application. Users can record audio or select an audio file to process. The results, including the transcription, sentiment analysis, and response text, are displayed in the GUI.
 
 ## Installation
 
-1. Clone the repository:
+To set up the **Standalone Audio ML Application** on your local machine, follow these steps:
 
-    ```bash
-    git clone https://github.com/yourusername/standalone-audio-ml-app.git
-    cd standalone-audio-ml-app
-    ```
-
-2. Install dependencies:
-
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-3. Run the application (CLI version):
-
-    ```bash
-    python main.py --record
-    # OR
-    python main.py --file <path_to_audio_file>
-    ```
-
-4. For GUI version:
-
-    ```bash
-    python gui_app.py
-    ```
-
-## Configuration
-
-- **ASR Model:** Uses the `facebook/wav2vec2-base-960h` model for speech recognition.
-- **NLP Model:** Uses the `distilbert-base-uncased-finetuned-sst-2-english` model for sentiment analysis.
-- **TTS Model:** Uses the `tts_models/en/ljspeech/tacotron2-DDC` for text-to-speech synthesis.
-
-## Contributions
-
-Feel free to contribute by forking the repository, creating a branch, and submitting a pull request.
-
-## License
-
-[Insert your license here]
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/yourusername/standalone-audio-ml-app.git
+   cd standalone-audio-ml-app
