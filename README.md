@@ -1,127 +1,70 @@
-require('dotenv').config();
-const mic = require('mic');
-const fs = require('fs');
-const axios = require('axios');
-const say = require('say');
+# Standalone Audio ML Application
 
-// Configuration
-const MIC_DURATION = 5; // seconds
-const AUDIO_FILE = 'input.wav';
-const RESPONSE_AUDIO = 'response.wav';
+This project is a comprehensive standalone audio machine learning application that integrates multiple technologies to process audio input. It combines Automatic Speech Recognition (ASR), Sentiment Analysis (NLP), and Text-to-Speech (TTS) models, allowing users to interact with audio in an intelligent manner. The application offers a range of functionalities for recording, transcribing, analyzing, and responding to audio in real-time. It also supports both a command-line interface and a GUI for ease of use.
 
-// Initialize microphone
-const microphone = mic({
-    rate: '16000',
-    channels: '1',
-    debug: false,
-    device: 'default',
-    exitOnSilence: 6
-});
-const micInputStream = microphone.getAudioStream();
-const outputFileStream = fs.WriteStream(AUDIO_FILE);
+## Features
 
-console.log("Recording...");
+- **ASR (Automatic Speech Recognition):** Convert spoken words into text using the Wav2Vec2 model by Facebook.
+- **Sentiment Analysis:** Analyze the sentiment of the transcribed text using a pre-trained DistilBERT model.
+- **TTS (Text-to-Speech):** Generate a spoken response based on the sentiment of the transcription using a Tacotron2-based model.
+- **Audio Recording & Processing:** Record audio via the microphone or process pre-recorded audio files.
+- **User Interaction:** Respond to the user's emotional tone (positive/negative) with an appropriate message.
+- **GUI Application:** Provides a user-friendly interface to record and process audio files with real-time feedback.
 
-micInputStream.pipe(outputFileStream);
+## Components
 
-microphone.start();
+- **asr.py:** Implements the ASR system using the Wav2Vec2 model for speech-to-text conversion.
+- **nlp.py:** Uses a pre-trained sentiment analysis pipeline to classify the sentiment of the transcribed text.
+- **tts_module.py:** Uses the Tacotron2-based TTS model to synthesize audio responses.
+- **audio_acquisition.py:** Handles the recording of audio from the microphone and loading of audio files.
+- **main.py:** Integrates all components and runs the audio processing pipeline.
+- **gui_app.py:** Provides a graphical interface for users to interact with the application.
 
-setTimeout(() => {
-    microphone.stop();
-}, MIC_DURATION * 1000);
+## Requirements
 
-// After recording
-micInputStream.on('end', async () => {
-    console.log("Recording stopped. Processing...");
+- Python 3.x
+- transformers, librosa, torch, sounddevice, soundfile, simpleaudio, termcolor, tkinter (for GUI app)
+- To run the program, ensure you have the necessary model weights downloaded via HuggingFace or similar sources.
 
-    try {
-        // ASR: Send audio to external API (e.g., AssemblyAI)
-        const transcript = await transcribeAudio(AUDIO_FILE);
-        console.log(`Transcribed Text: ${transcript}`);
+## Installation
 
-        // NLP: Simple sentiment analysis placeholder
-        const sentiment = await analyzeSentiment(transcript);
-        console.log(`Sentiment: ${sentiment}`);
+1. Clone the repository:
 
-        // Generate response
-        let responseText = "";
-        if (sentiment === 'positive') {
-            responseText = "I'm glad you're feeling good today!";
-        } else {
-            responseText = "I'm sorry to hear that. How can I assist you?";
-        }
+    ```bash
+    git clone https://github.com/yourusername/standalone-audio-ml-app.git
+    cd standalone-audio-ml-app
+    ```
 
-        console.log(`Response Text: ${responseText}`);
+2. Install dependencies:
 
-        // TTS: Generate audio response
-        say.export(responseText, null, 1, RESPONSE_AUDIO, (err) => {
-            if (err) {
-                return console.error(err);
-            }
-            console.log(`Generated audio saved at: ${RESPONSE_AUDIO}`);
-        });
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-    } catch (error) {
-        console.error(error);
-    }
-});
+3. Run the application (CLI version):
 
-// Function to transcribe audio using AssemblyAI
-async function transcribeAudio(filePath) {
-    const apiKey = process.env.ASSEMBLYAI_API_KEY;
-    if (!apiKey) throw new Error("Missing ASSEMBLYAI_API_KEY in .env");
+    ```bash
+    python main.py --record
+    # OR
+    python main.py --file <path_to_audio_file>
+    ```
 
-    // Upload audio
-    const uploadResponse = await axios({
-        method: 'post',
-        url: 'https://api.assemblyai.com/v2/upload',
-        headers: {
-            authorization: apiKey,
-            'Content-Type': 'application/octet-stream'
-        },
-        data: fs.readFileSync(filePath)
-    });
-    const audioUrl = uploadResponse.data.upload_url;
+4. For GUI version:
 
-    // Request transcription
-    const transcriptResponse = await axios({
-        method: 'post',
-        url: 'https://api.assemblyai.com/v2/transcript',
-        headers: { authorization: apiKey, 'Content-Type': 'application/json' },
-        data: { audio_url: audioUrl }
-    });
-    const transcriptId = transcriptResponse.data.id;
+    ```bash
+    python gui_app.py
+    ```
 
-    // Poll for transcription completion
-    let transcript = '';
-    while (true) {
-        const pollingResponse = await axios({
-            method: 'get',
-            url: `https://api.assemblyai.com/v2/transcript/${transcriptId}`,
-            headers: { authorization: apiKey }
-        });
-        if (pollingResponse.data.status === 'completed') {
-            transcript = pollingResponse.data.text;
-            break;
-        } else if (pollingResponse.data.status === 'error') {
-            throw new Error("Transcription failed.");
-        }
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
-    }
-    return transcript;
-}
+## Configuration
 
-// Function to analyze sentiment (placeholder using simple keywords)
-async function analyzeSentiment(text) {
-    const positiveKeywords = ['good', 'happy', 'fantastic', 'great', 'awesome'];
-    const negativeKeywords = ['bad', 'sad', 'terrible', 'horrible', 'worst'];
+- **ASR Model:** Uses the `facebook/wav2vec2-base-960h` model for speech recognition.
+- **NLP Model:** Uses the `distilbert-base-uncased-finetuned-sst-2-english` model for sentiment analysis.
+- **TTS Model:** Uses the `tts_models/en/ljspeech/tacotron2-DDC` for text-to-speech synthesis.
 
-    const textLower = text.toLowerCase();
-    for (let word of positiveKeywords) {
-        if (textLower.includes(word)) return 'positive';
-    }
-    for (let word of negativeKeywords) {
-        if (textLower.includes(word)) return 'negative';
-    }
-    return 'neutral';
-}
+## Contributions
+
+Feel free to contribute by forking the repository, creating a branch, and submitting a pull request.
+
+## License
+
+[Insert your license here]
